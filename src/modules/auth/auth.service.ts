@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import * as bcrypt from 'bcryptjs'
-import { CreateConfirmEmail } from './auth.types';
 import { ConfirmEmail } from './confirm-email.emtity';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
@@ -16,7 +15,7 @@ export class AuthService {
         private userService: UserService
      ) {}
     
-    public createConfirmEmail(body: CreateConfirmEmail) {
+    public createConfirmEmail(body: any) {
         return this.confirmEmailRepository.save(body)
     }
     

@@ -10,13 +10,19 @@ import {
     @PrimaryGeneratedColumn()
     id: number;
   
-    @Column()
+    @Column({
+        default: null
+    })
     name: string;
   
-    @Column()
+    @Column({
+        default: null
+    })
     surname: string;
 
-    @Column()
+    @Column({
+        default: null
+    })
     lastname: string;
   
     @Column()
@@ -24,6 +30,7 @@ import {
   
     @Column({
       unique: true,
+      default: null
     })
     phone: string;
   
