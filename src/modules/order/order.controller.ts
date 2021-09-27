@@ -190,10 +190,7 @@ export class OrderController {
                 }
             }
 
-            const orders = await getRepository(Order).findAndCount({
-                take: query.take,
-                skip: query.skip
-            })
+            const orders = await getRepository(Order).find()
 
             return {
                 orders

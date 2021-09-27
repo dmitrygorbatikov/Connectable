@@ -90,15 +90,13 @@ public async checkManeger(token: string){
     try {
 
         if(!token){
-      console.log(false);
 
             return false
         }
         else{
             const decode = this.jwtService.verify(token)
             const user = await this.userService.getOneById(decode.userId)
-            console.log(user.role);
-            
+
             if(!user || user.role !== 'manager'){
                 return false
             }
@@ -106,8 +104,6 @@ public async checkManeger(token: string){
         }
   }
   catch(e){
-      console.log(e);
-      
       return false
   }
 }

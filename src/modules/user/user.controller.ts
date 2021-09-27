@@ -77,8 +77,6 @@ export class UserController {
         const token = headers.token
 
         const isAuth = await this.authService.checkUser(token)
-            console.log(isAuth)
-
         if(!isAuth){
             return {
                 error: "Нет авторизации",
