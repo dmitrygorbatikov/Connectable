@@ -9,6 +9,7 @@ import { Order } from './modules/order/order.entity';
 import { City } from './modules/city/city.entity';
 import { Department } from './modules/department/department.entity';
 import { ConfirmEmail } from './modules/auth/confirm-email.emtity';
+import {DepartmentModule} from "./modules/department/department.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ConfirmEmail } from './modules/auth/confirm-email.emtity';
     UserModule,
     AuthModule,
     OrderModule,
+    DepartmentModule
   ],
 })
 export class AppModule {}
