@@ -50,6 +50,7 @@ export class AuthService {
         if(!user){
             return false
         }
+    return true
     }
   }
   catch(e){
