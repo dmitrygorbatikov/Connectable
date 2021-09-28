@@ -1,4 +1,4 @@
-import { Body, Controller, Post , Headers, HttpStatus, Get, Delete, Param, Put} from '@nestjs/common';
+import {Body, Controller, Post, Headers, HttpStatus, Get, Delete, Param, Put, Query} from '@nestjs/common';
 import { getRepository, Like } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { Department } from './department.entity';
@@ -40,7 +40,7 @@ export class DepartmentController {
     }
 
     @Get('/search')
-    public async searchDepartments(@Body() body, @Headers() headers){
+    public async searchDepartments(@Query() query, @Headers() headers){
         const token = headers.token
 
             const isAuth = await this.authService.checkUser(token)
@@ -52,13 +52,12 @@ export class DepartmentController {
                 }
             }
 
-        const departments = getRepository(Department).find({
+        return getRepository(Department).find({
             where: [
-                {city: Like(`%${body.city}%`) }
+                {city: Like(`%${query.city}%`) }
 
             ]
         })
-        return departments
     }
 
     @Delete('/:id')
