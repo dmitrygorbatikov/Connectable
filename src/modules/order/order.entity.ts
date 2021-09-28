@@ -45,7 +45,7 @@ export class Order {
   createDate: Date
 
   @Column({
-    default: 'В обробцi',
+    default: 'В обробці)',
   })
   status: string;
 }

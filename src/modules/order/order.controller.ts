@@ -106,7 +106,7 @@ export class OrderController {
             }
 
             await this.orderService.confirmOrder(query.id, {
-                status: "Отправлен"
+                status: "Відправлено"
             })
         }
         catch(e){
@@ -138,7 +138,7 @@ export class OrderController {
             }
 
             await this.orderService.confirmOrder(query.id, {
-                status: "Доставлен"
+                status: "Доставлено"
             })
         }
         catch(e){
@@ -238,6 +238,4 @@ export class OrderController {
             }
         }
     }
-
-
 }
