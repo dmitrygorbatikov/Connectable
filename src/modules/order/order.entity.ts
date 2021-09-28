@@ -23,13 +23,19 @@ export class Order {
   @Column()
   deliveryCost: number;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   weight: number;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   height: number;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   width: number;
 
   @Column()
