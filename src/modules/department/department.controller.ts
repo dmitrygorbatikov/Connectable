@@ -29,9 +29,8 @@ export class DepartmentController {
                 latitude: body.latitude,
                 longtitude: body.longtitude
             })
-            return {
-                department
-            }
+            return department
+
 
         } catch (e) {
             return {
@@ -53,14 +52,13 @@ export class DepartmentController {
                 }
             }
 
-        const departments = getRepository(Department).findAndCount({
+        const departments = getRepository(Department).find({
             where: [
                 {city: Like(`%${body.city}%`) }
 
             ]
         })
-
-        return {departments}
+        return departments
     }
 
     @Delete('/:id')
