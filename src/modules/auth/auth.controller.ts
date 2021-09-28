@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import * as nodemailer from 'nodemailer';
 import { JwtService } from '@nestjs/jwt';
+import {createQueryBuilder, getRepository} from "typeorm";
+import {User} from "../user/user.entity";
 
 @Controller('auth')
 export class AuthController {
@@ -141,7 +143,9 @@ export class AuthController {
       username: user.name,
       userId: user.id,
     });
-    
+
+
+
 
     return {
       userId: user.id,

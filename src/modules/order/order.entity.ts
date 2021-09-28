@@ -51,8 +51,16 @@ export class Order {
   })
   longtitude: number;
 
+  @Column()
+  sendToEmail: string;
+
   @CreateDateColumn()
   createDate: Date
+
+  @Column({
+    default: null
+  })
+  deliveredDate: Date
 
   @Column({
     default: 'В обробці)',

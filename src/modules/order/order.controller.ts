@@ -1,9 +1,11 @@
 import { Body, Controller, Post, Headers, HttpStatus, Get, Put, Query } from '@nestjs/common';
-import { getRepository, Like } from 'typeorm';
+import {createQueryBuilder, getRepository, Like} from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { UserService } from '../user/user.service';
 import { Order } from './order.entity';
 import { OrderService } from './order.service';
+import * as nodemailer from 'nodemailer';
+import {User} from "../user/user.entity";
 
 @Controller('order')
 export class OrderController {
@@ -36,6 +38,7 @@ export class OrderController {
                 weight:body.weight,
                 height:body.height,
                 width: body.width,
+                sendToEmail: body.sendToEmail,
                 userId: body.userId,
                 latitude: body.latitude,
                 longtitude: body.longtitude
@@ -72,10 +75,39 @@ export class OrderController {
                     error: "Заказ не найден"
                 }
             }
+            const user = await this.userService.getOneById(order.userId)
+
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD,
+                },
+            });
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: order.sendToEmail,
+                subject: 'Connectable',
+                text: `Посылка от ${user.name} ${user.surname} ${user.lastname} подтверждена и в близжайшее время будет отправлена`,
+            });
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: user.email,
+                subject: 'Connectable',
+                text: `Ваша посылка подтверждена и в близжайшее время будет отправлена`,
+            });
 
             await this.orderService.confirmOrder(query.id, {
                 status: "Подтверждён"
             })
+
+            const users = await getRepository(User).find({select: ['email']})
+
+            return {
+                users,
+                status: "Подтверждён"
+            }
         }
         catch(e){
             return {
@@ -104,10 +136,38 @@ export class OrderController {
                     error: "Заказ не найден"
                 }
             }
+            const user = await this.userService.getOneById(order.userId)
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD,
+                },
+            });
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: order.sendToEmail,
+                subject: 'Connectable',
+                text: `Посылка от ${user.name} ${user.surname} ${user.lastname} отправлена и в близжайшее время будет доставлена`,
+            });
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: user.email,
+                subject: 'Connectable',
+                text: `Ваша посылка отправлена и в близжайшее время будет доставлена`,
+            });
 
             await this.orderService.confirmOrder(query.id, {
                 status: "Відправлено"
             })
+
+            const users = await getRepository(User).find({select: ['email']})
+
+            return {
+                users,
+                status: "Відправлено"
+            }
         }
         catch(e){
             return {
@@ -137,9 +197,39 @@ export class OrderController {
                 }
             }
 
+            const user = await this.userService.getOneById(order.userId)
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD,
+                },
+            });
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: order.sendToEmail,
+                subject: 'Connectable',
+                text: `Посылка от ${user.name} ${user.surname} ${user.lastname} доставлена и ждёт по адресу: ${order.recipientAddress}. Платное хранение начинается через 4 дня со дня срока доставки`,
+            });
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: user.email,
+                subject: 'Connectable',
+                text: `Ваша посылка доставлена и ждёт по адресу: ${order.recipientAddress}.`,
+            });
+
             await this.orderService.confirmOrder(query.id, {
-                status: "Доставлено"
+                status: "Доставлено",
+                deliveredDate: Date.now
             })
+
+            const users = await getRepository(User).find({select: ['email']})
+
+            return {
+                users,
+                status: "Доставлено"
+            }
         }
         catch(e){
             return {
@@ -162,7 +252,7 @@ export class OrderController {
                 }
             }
 
-            const orders = getRepository(Order).findAndCount({where: 
+            const orders = getRepository(Order).find({where:
                 [ 
                     {number: Like(`%${body.number}%`) }
                 ]
