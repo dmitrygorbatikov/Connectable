@@ -35,10 +35,14 @@ export class Order {
   @Column()
   userId: number;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   latitude: number;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   longtitude: number;
 
   @CreateDateColumn()

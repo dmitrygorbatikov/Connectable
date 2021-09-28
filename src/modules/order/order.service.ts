@@ -27,6 +27,6 @@ export class OrderService {
     }
 
     public getByUserId(id: number){
-        return this.orderRepository.find({id})
+        return this.orderRepository.find()
     }
 }

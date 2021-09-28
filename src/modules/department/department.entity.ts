@@ -14,9 +14,13 @@ export class Department {
   @Column()
   street: string;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   latitude: number;
 
-  @Column()
+  @Column({
+    type: "double"
+  })
   longtitude: number;
 }
