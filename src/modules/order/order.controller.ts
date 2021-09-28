@@ -112,10 +112,7 @@ export class OrderController {
                 status: "Подтверждён"
             })
 
-            const users = await getRepository(User).find({select: ['email']})
-
             return {
-                users,
                 status: "Подтверждён"
             }
         }
@@ -172,10 +169,7 @@ export class OrderController {
                 status: "Відправлено"
             })
 
-            const users = await getRepository(User).find({select: ['email']})
-
             return {
-                users,
                 status: "Відправлено"
             }
         }
@@ -234,10 +228,7 @@ export class OrderController {
                 deliveredDate: Date.now
             })
 
-            const users = await getRepository(User).find({select: ['email']})
-
             return {
-                users,
                 status: "Доставлено"
             }
         }
@@ -329,7 +320,6 @@ export class OrderController {
             const orders = await this.orderService.getByUserId(decode.userId)
 
             const secondOrders = await getRepository(Order).find({sendToEmail: user.email})
-// 532678
             let allOrders = orders.concat(secondOrders).sort(
                 (a, b) => {
                     if(a.id > b.id){
