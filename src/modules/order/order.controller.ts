@@ -26,7 +26,17 @@ export class OrderController {
                 }
             }
 
-            const number = this.authService.getRandomNumber(1000000000, 9999999999)
+            const number = this.authService.getRandomNumber(100000000, 999999999)
+
+            const decode = this.authService.getIdByToken(token)
+
+            const user = await this.userService.getOneById(decode.userId)
+
+            if(body.sendToEmail === user.email){
+                return {
+                    error: "Нельзя указать адрес получателя как свой"
+                }
+            }
             
             const order = await this.orderService.createOrder({
                 number,
@@ -39,7 +49,7 @@ export class OrderController {
                 height:body.height,
                 width: body.width,
                 sendToEmail: body.sendToEmail,
-                userId: body.userId,
+                userId: user.id,
                 latitude: body.latitude,
                 longtitude: body.longtitude
             })
@@ -308,9 +318,9 @@ export class OrderController {
     
             const decode = this.authService.getIdByToken(token)
     
-            const userByEmail = await this.userService.getOneById(decode.userId)
+            const user = await this.userService.getOneById(decode.userId)
     
-            if(!userByEmail){
+            if(!user){
                 return {
                     error: "Пользователь не найден"
                 }
@@ -318,8 +328,21 @@ export class OrderController {
 
             const orders = await this.orderService.getByUserId(decode.userId)
 
+            const secondOrders = await getRepository(Order).find({sendToEmail: user.email})
+// 532678
+            let allOrders = orders.concat(secondOrders).sort(
+                (a, b) => {
+                    if(a.id > b.id){
+                        return 1
+                    }
+                    else if (a.id < b.id){
+                        return -1
+                    }
+                    return 0
+                }
+            )
             return {
-                orders
+                orders: allOrders
             }
         }
         catch(e){

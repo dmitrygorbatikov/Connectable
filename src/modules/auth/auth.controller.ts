@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Post, HttpStatus, Param, Response, Headers, Res } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
+import {Body, Controller, Get, HttpStatus, Param, Post, Res} from '@nestjs/common';
+import {AuthService} from './auth.service';
+import {UserService} from '../user/user.service';
 import * as nodemailer from 'nodemailer';
-import { JwtService } from '@nestjs/jwt';
-import {createQueryBuilder, getRepository} from "typeorm";
+import {JwtService} from '@nestjs/jwt';
+import {getRepository} from "typeorm";
 import {User} from "../user/user.entity";
 
 @Controller('auth')
@@ -13,6 +13,18 @@ export class AuthController {
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
+
+  @Get()
+  public async getAllEmails(){
+    const users = await getRepository(User).find({select: ['email']})
+    const newUsers = []
+    users.forEach((user) => {
+      newUsers.push(user.email)
+    })
+
+    return newUsers
+
+  }
 
   @Post('/confirm-email')
   public async confirmEmail(@Body() body) {

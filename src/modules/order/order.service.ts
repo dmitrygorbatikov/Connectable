@@ -26,7 +26,7 @@ export class OrderService {
         return this.orderRepository.update({id}, body)
     }
 
-    public getByUserId(id: number){
-        return this.orderRepository.find()
+    public getByUserId(userId: number){
+        return this.orderRepository.find({userId})
     }
 }
