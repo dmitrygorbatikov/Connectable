@@ -112,6 +112,7 @@ export class AuthController {
     await this.authService.deleteConfirmEmail(confirmEmail.id);
 
     return {
+      userId: createdUser.id,
       token,
       status: HttpStatus.OK,
     };
@@ -143,6 +144,7 @@ export class AuthController {
     
 
     return {
+      userId: user.id,
       token,
       status: HttpStatus.OK,
     };
