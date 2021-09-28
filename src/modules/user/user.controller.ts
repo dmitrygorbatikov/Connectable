@@ -229,7 +229,7 @@ export class UserController {
             }
 
             const userByPhone = await this.userService.getOneByPhone(body.phone)
-            if(userByPhone){
+            if(userByPhone || userByPhone !== decode.userId){
                 return {
                     error:"Пользователь с таким телефоном уже зарегестрирован"
                 }

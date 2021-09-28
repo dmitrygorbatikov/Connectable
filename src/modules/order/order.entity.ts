@@ -63,7 +63,7 @@ export class Order {
   deliveredDate: Date
 
   @Column({
-    default: 'В обробці)',
+    default: 'В обробці',
   })
   status: string;
 }
