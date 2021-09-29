@@ -8,161 +8,169 @@ import {User} from "../user/user.entity";
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private userService: UserService,
-    private jwtService: JwtService,
-  ) {}
-
-  @Get()
-  public async getAllEmails(){
-    const users = await getRepository(User).find({select: ['email']})
-    const newUsers = []
-    users.forEach((user) => {
-      newUsers.push(user.email)
-    })
-
-    return newUsers
-
-  }
-
-  @Post('/confirm-email')
-  public async confirmEmail(@Body() body) {
-    const user = await this.userService.getOneByEmail(body.email);
-    if (user) {
-      return {
-        status: HttpStatus.BAD_GATEWAY,
-        error: 'User is exist',
-      };
+    constructor(
+        private authService: AuthService,
+        private userService: UserService,
+        private jwtService: JwtService,
+    ) {
     }
 
-    const candidateConfirmEmail = await this.authService.findConfirmEmail(body.email);
+    @Get()
+    public async getAllEmails() {
+        const users = await getRepository(User).find({select: ['email']})
+        const newUsers = []
+        users.forEach((user) => {
+            newUsers.push(user.email)
+        })
 
-    if (candidateConfirmEmail) {
-      return {
-        error: 'Вы уже отправляли письмо на почту',
-        status: HttpStatus.BAD_GATEWAY,
-      };
+        return newUsers
+
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-      },
-    });
-
-    const rand = this.authService.getRandomNumber(100000, 999999);
-
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: body.email,
-      subject: 'Подтверждение регистрации',
-      text: `Ваш код подтверждения: ${rand}`,
-    };
-
-    if(!(/^(?=.*[.])(?=.*[@]).{1,}/.test(body.email))){
-        return {
-          error: "Введите корректный email",
-          status: HttpStatus.BAD_REQUEST
+    @Post('/confirm-email')
+    public async confirmEmail(@Body() body) {
+        const user = await this.userService.getOneByEmail(body.email);
+        if (user) {
+            return {
+                status: HttpStatus.BAD_GATEWAY,
+                error: 'User is exist',
+            };
         }
+
+        const candidateConfirmEmail = await this.authService.findConfirmEmail(body.email);
+
+        if (candidateConfirmEmail) {
+            return {
+                error: 'Вы уже отправляли письмо на почту',
+                status: HttpStatus.BAD_GATEWAY,
+            };
+        }
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.PASSWORD,
+            },
+        });
+
+        const rand = this.authService.getRandomNumber(100000, 999999);
+
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: body.email,
+            subject: 'Подтверждение регистрации',
+            text: `Ваш код подтверждения: ${rand}`,
+        };
+
+        if (!(/^(?=.*[.])(?=.*[@]).{1,}/.test(body.email))) {
+            return {
+                error: "Введите корректный email",
+                status: HttpStatus.BAD_REQUEST
+            }
+        }
+
+        let regularPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+
+        if (!regularPassword.test(body.password)) {
+            return {
+                error: "Пароль должен содержать не менее 8 символов, хотя бы 1 цифру и 1 заглавную букву"
+            }
+        }
+
+        const hashedPassword = await this.authService.passwordHash(body.password);
+
+        await this.authService.createConfirmEmail({
+            name: body.name,
+            surname: body.surname,
+            lastname: body.lastname,
+            email: body.email,
+            phone: body.phone,
+            password: hashedPassword,
+            code: rand
+        });
+
+        transporter.sendMail(mailOptions);
+
+        return {
+            status: HttpStatus.OK,
+            message: 'Письмо было отправлено',
+        };
     }
 
-    let regularPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    @Post('/register/:email')
+    public async registerUser(@Param() params, @Body() body) {
+        const confirmEmail = await this.authService.findConfirmEmail(params.email)
 
-    if(!regularPassword.test(body.password)){
-      return{
-        error:"Пароль должен содержать не менее 8 символов, хотя бы 1 цифру и 1 заглавную букву"
-      }
+        if (!confirmEmail) {
+            return {
+                error: "Email не найден",
+                status: HttpStatus.BAD_GATEWAY
+            }
+        }
+
+        const isSuccessful = confirmEmail.code === body.code ? true : false;
+
+        if (isSuccessful === false) {
+            return {
+                error: 'Неверный код',
+                status: HttpStatus.BAD_GATEWAY,
+            };
+        }
+
+        const createdUser = await this.userService.create({
+            name: confirmEmail.name,
+            surname: confirmEmail.surname,
+            lastname: confirmEmail.lastname,
+            email: confirmEmail.email,
+            phone: confirmEmail.surname,
+            password: confirmEmail.password,
+        });
+
+        const token = this.jwtService.sign({
+            username: `${createdUser.name} ${createdUser.surname}`,
+            userId: createdUser.id,
+        });
+
+        await this.authService.deleteConfirmEmail(confirmEmail.id);
+
+        return {
+            role: createdUser.role,
+            userId: createdUser.id,
+            token,
+            status: HttpStatus.OK,
+        };
     }
 
-    const hashedPassword = await this.authService.passwordHash(body.password);
+    @Post('/login')
+    public async loginUser(@Body() body, @Res({passthrough: true}) res) {
+        const user = await this.userService.getOneByEmail(body.email);
+        if (!user) {
+            return {
+                status: HttpStatus.NOT_FOUND,
+                error: 'User not found',
+            };
+        }
 
-    await this.authService.createConfirmEmail({name: body.name, surname: body.surname, lastname: body.lastname, email: body.email, phone: body.phone, password: hashedPassword, code: rand});
+        const isMatch = await this.authService.comparePassword(body.password, user.password);
 
-    transporter.sendMail(mailOptions);
+        if (!isMatch) {
+            return {
+                error: 'Incorrect email or password',
+                status: HttpStatus.BAD_GATEWAY,
+            };
+        }
 
-    return {
-      status: HttpStatus.OK,
-      message: 'Письмо было отправлено',
-    };
-  }  
+        const token = this.jwtService.sign({
+            username: user.name,
+            userId: user.id,
+        });
 
-  @Post('/register/:email')
-  public async registerUser(@Param() params, @Body() body){
-    const confirmEmail = await this.authService.findConfirmEmail(params.email)
-
-    if(!confirmEmail){
-      return {
-        error:"Email не найден",
-        status: HttpStatus.BAD_GATEWAY
-      }
+        return {
+            role: user.role,
+            userId: user.id,
+            token,
+            status: HttpStatus.OK,
+        };
     }
-
-    const isSuccessful = confirmEmail.code === body.code ? true : false;
-
-    if (isSuccessful === false) {
-      return {
-        error: 'Неверный код',
-        status: HttpStatus.BAD_GATEWAY,
-      };
-    }
-
-    const createdUser = await this.userService.create({
-      name: confirmEmail.name,
-      surname: confirmEmail.surname,
-      lastname: confirmEmail.lastname,
-      email: confirmEmail.email,
-      phone: confirmEmail.surname,
-      password: confirmEmail.password,
-    });
-
-    const token = this.jwtService.sign({
-      username: `${createdUser.name} ${createdUser.surname}`,
-      userId: createdUser.id,
-    });
-
-    await this.authService.deleteConfirmEmail(confirmEmail.id);
-
-    return {
-      userId: createdUser.id,
-      token,
-      status: HttpStatus.OK,
-    };
-  }
-
-  @Post('/login')
-  public async loginUser(@Body() body, @Res({ passthrough: true }) res){
-    const user = await this.userService.getOneByEmail(body.email);
-    if (!user) {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        error: 'User not found',
-      };
-    }
-
-    const isMatch = await this.authService.comparePassword(body.password, user.password);
-
-    if (!isMatch) {
-      return {
-        error: 'Incorrect email or password',
-        status: HttpStatus.BAD_GATEWAY,
-      };
-    }    
-
-    const token = this.jwtService.sign({
-      username: user.name,
-      userId: user.id,
-    });
-
-
-
-
-    return {
-      userId: user.id,
-      token,
-      status: HttpStatus.OK,
-    };
-  }
 }
