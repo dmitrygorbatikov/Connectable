@@ -1,11 +1,10 @@
 import { Body, Controller, Post, Headers, HttpStatus, Get, Put, Query } from '@nestjs/common';
-import {createQueryBuilder, getRepository, Like} from 'typeorm';
+import { getRepository, Like} from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { UserService } from '../user/user.service';
 import { Order } from './order.entity';
 import { OrderService } from './order.service';
 import * as nodemailer from 'nodemailer';
-import {User} from "../user/user.entity";
 
 @Controller('order')
 export class OrderController {
@@ -99,21 +98,21 @@ export class OrderController {
                 from: process.env.EMAIL,
                 to: order.sendToEmail,
                 subject: 'Connectable',
-                text: `Посылка от ${user.name} ${user.surname} ${user.lastname} подтверждена и в близжайшее время будет отправлена`,
+                text: `Поислка вiд ${user.name} ${user.surname} ${user.lastname} буда пiдтверджена та буде вiдправлена найближчим часом`,
             });
             transporter.sendMail({
                 from: process.env.EMAIL,
                 to: user.email,
                 subject: 'Connectable',
-                text: `Ваша посылка подтверждена и в близжайшее время будет отправлена`,
+                text: `Ваша посилка була пiдтверджена та буде вiдправлена найближчим часом`,
             });
 
             await this.orderService.confirmOrder(query.id, {
-                status: "Подтверждён"
+                status: "Підтверджено"
             })
 
             return {
-                status: "Подтверждён"
+                status: "Підтверджено"
             }
         }
         catch(e){
@@ -156,13 +155,13 @@ export class OrderController {
                 from: process.env.EMAIL,
                 to: order.sendToEmail,
                 subject: 'Connectable',
-                text: `Посылка от ${user.name} ${user.surname} ${user.lastname} отправлена и в близжайшее время будет доставлена`,
+                text: `Посилка ${user.name} ${user.surname} ${user.lastname} вiдправлена та найближчим часом будет доставлена`,
             });
             transporter.sendMail({
                 from: process.env.EMAIL,
                 to: user.email,
                 subject: 'Connectable',
-                text: `Ваша посылка отправлена и в близжайшее время будет доставлена`,
+                text: `Ваша посилка вiдправлена та найближчим часом буде вiдправлена`,
             });
 
             await this.orderService.confirmOrder(query.id, {
@@ -214,13 +213,13 @@ export class OrderController {
                 from: process.env.EMAIL,
                 to: order.sendToEmail,
                 subject: 'Connectable',
-                text: `Посылка от ${user.name} ${user.surname} ${user.lastname} доставлена и ждёт по адресу: ${order.recipientAddress}. Платное хранение начинается через 4 дня со дня срока доставки`,
+                text: `Посилка вiд ${user.name} ${user.surname} ${user.lastname} доставлена та чекае за адресою: ${order.recipientAddress}.`,
             });
             transporter.sendMail({
                 from: process.env.EMAIL,
                 to: user.email,
                 subject: 'Connectable',
-                text: `Ваша посылка доставлена и ждёт по адресу: ${order.recipientAddress}.`,
+                text: `Ваша посилка доставлена та чекае за адресою: ${order.recipientAddress}.`,
             });
 
             await this.orderService.confirmOrder(query.id, {
