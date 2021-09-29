@@ -37,14 +37,14 @@ export class OrderController {
                     error: "Нельзя указать адрес получателя как свой"
                 }
             }
-            
+
             const order = await this.orderService.createOrder({
                 number,
                 title: body.title,
                 cost: body.cost,
                 sendAddress: body.sendAddress,
                 recipientAddress:body.recipientAddress,
-                deliveryCost: body.deliveryCost,
+                deliveryCost: body.weight <= 1 ? 40 : body.weight > 1 && body.weight <= 5 ? 80 : 120,
                 weight:body.weight,
                 height:body.height,
                 width: body.width,
